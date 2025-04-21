@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Caseros a Su Gusto – Arqueo de Efectivo</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- FontAwesome Icons -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+      .signature-pad {
+        border: 2px dashed #ced4da;
+        border-radius: 0.25rem;
+      }
+      .readonly {
+        background-color: #e9ecef;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">Caseros a Su Gusto</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#mainNav"
+          aria-controls="mainNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="inicio.html">Inicio</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="index.html">Pedidos</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="arqueo-efectivo.html"
+                >Arqueo Efectivo</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="inventario-balance.html"
+                >Balance Inventario</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="container py-5">
+      <!-- Header -->
+      <div class="text-center mb-5">
+        <h1 class="display-4">
+          <i class="fas fa-cash-register"></i> Arqueo de Efectivo
+        </h1>
+        <p class="lead text-muted">Caseros a Su Gusto – Control Diario</p>
+      </div>
+
+      <!-- Cash Audit Form -->
+      <form id="cashForm" class="bg-white p-4 rounded shadow-sm">
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <label class="form-label"
+              ><i class="fas fa-calendar-day"></i> Fecha</label
+            >
+            <input
+              type="text"
+              class="form-control readonly"
+              id="fecha"
+              disabled
+            />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label"
+              ><i class="fas fa-user-cash"></i> Cajero</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="cajero"
+              placeholder="Nombre del cajero"
+              required
+            />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label"><i class="fas fa-clock"></i> Turno</label>
+            <select class="form-select" id="turno" required>
+              <option value="">Selecciona turno</option>
+              <option value="Mañana">Mañana</option>
+              <option value="Tarde">Tarde</option>
+              <option value="Noche">Noche</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label"
+              ><i class="fas fa-money-bill-wave"></i> Caja Inicial (COP)</label
+            >
+            <input
+              type="number"
+              step="0.01"
+              class="form-control"
+              id="cajaInicial"
+              required
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label"
+              ><i class="fas fa-coins"></i> Ventas Efectivo (COP)</label
+            >
+            <input
+              type="number"
+              step="0.01"
+              class="form-control"
+              id="ventasEfectivo"
+              required
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label"
+              ><i class="fas fa-credit-card"></i> Ventas Tarjeta (COP)</label
+            >
+            <input
+              type="number"
+              step="0.01"
+              class="form-control"
+              id="ventasTarjeta"
+              required
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label"
+              ><i class="fas fa-mobile-alt"></i> Ventas Móvil (COP)</label
+            >
+            <input
+              type="number"
+              step="0.01"
+              class="form-control"
+              id="ventasMovil"
+              required
+            />
+          </div>
+        </div>
+
+        <hr />
+
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label"
+              ><i class="fas fa-exchange-alt"></i> Retiros/Depósitos
+              (COP)</label
+            >
+            <input
+              type="number"
+              step="0.01"
+              class="form-control"
+              id="movimientos"
+            />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label"
+              ><i class="fas fa-receipt"></i> Gastos Menores (COP)</label
+            >
+            <input
+              type="number"
+              step="0.01"
+              class="form-control"
+              id="gastosMenores"
+            />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label"
+              ><i class="fas fa-wallet"></i> Caja Contado (COP)</label
+            >
+            <input
+              type="number"
+              step="0.01"
+              class="form-control"
+              id="cajaContado"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="row my-3">
+          <div class="col-md-4">
+            <label class="form-label"
+              ><i class="fas fa-sum"></i> Total Ventas (COP)</label
+            >
+            <input
+              type="text"
+              class="form-control readonly"
+              id="totalVentas"
+              disabled
+            />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label"
+              ><i class="fas fa-calculator"></i> Caja Esperada (COP)</label
+            >
+            <input
+              type="text"
+              class="form-control readonly"
+              id="cajaEsperada"
+              disabled
+            />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label"
+              ><i class="fas fa-exclamation-triangle"></i> Diferencia
+              (COP)</label
+            >
+            <input
+              type="text"
+              class="form-control readonly"
+              id="diferencia"
+              disabled
+            />
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label"
+            ><i class="fas fa-sticky-note"></i> Observaciones</label
+          >
+          <textarea
+            class="form-control"
+            id="observaciones"
+            rows="2"
+            placeholder="Comentarios adicionales..."
+          ></textarea>
+        </div>
+
+        <!-- Firma Digital Cajero -->
+        <div class="mb-3">
+          <label class="form-label"
+            ><i class="fas fa-signature"></i> Firma Digital (Cajero)</label
+          >
+          <canvas
+            id="signatureCash"
+            class="w-100 signature-pad"
+            width="400"
+            height="150"
+          ></canvas>
+          <button type="button" id="clearCash" class="btn btn-secondary mt-2">
+            <i class="fas fa-eraser"></i> Limpiar firma
+          </button>
+        </div>
+
+        <!-- Firma Supervisor -->
+        <div class="mb-3">
+          <label class="form-label"
+            ><i class="fas fa-user-check"></i> Firma Digital (Supervisor)</label
+          >
+          <canvas
+            id="signatureSupervisor"
+            class="w-100 signature-pad"
+            width="400"
+            height="150"
+          ></canvas>
+          <button type="button" id="clearSup" class="btn btn-secondary mt-2">
+            <i class="fas fa-eraser"></i> Limpiar firma
+          </button>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="fas fa-paper-plane"></i> Enviar Arqueo Completo
+        </button>
+      </form>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script>
+      // Set Fecha
+      document.getElementById("fecha").value = new Date().toLocaleDateString(
+        "es-CO"
+      );
+
+      // Initialize Signature Pads
+      const padCash = new SignaturePad(
+        document.getElementById("signatureCash")
+      );
+      const padSup = new SignaturePad(
+        document.getElementById("signatureSupervisor")
+      );
+      document
+        .getElementById("clearCash")
+        .addEventListener("click", () => padCash.clear());
+      document
+        .getElementById("clearSup")
+        .addEventListener("click", () => padSup.clear());
+
+      // Calculation logic
+      function calcular() {
+        const ventasE =
+          parseFloat(document.getElementById("ventasEfectivo").value) || 0;
+        const ventasT =
+          parseFloat(document.getElementById("ventasTarjeta").value) || 0;
+        const ventasM =
+          parseFloat(document.getElementById("ventasMovil").value) || 0;
+        const cajaI =
+          parseFloat(document.getElementById("cajaInicial").value) || 0;
+        const mov =
+          parseFloat(document.getElementById("movimientos").value) || 0;
+        const gas =
+          parseFloat(document.getElementById("gastosMenores").value) || 0;
+        const contado =
+          parseFloat(document.getElementById("cajaContado").value) || 0;
+        const totalV = ventasE + ventasT + ventasM;
+        const cajaEsp = cajaI + ventasE + mov - gas;
+        const diff = contado - cajaEsp;
+        document.getElementById("totalVentas").value = totalV.toFixed(2);
+        document.getElementById("cajaEsperada").value = cajaEsp.toFixed(2);
+        document.getElementById("diferencia").value = diff.toFixed(2);
+      }
+
+      [
+        "ventasEfectivo",
+        "ventasTarjeta",
+        "ventasMovil",
+        "cajaInicial",
+        "movimientos",
+        "gastosMenores",
+        "cajaContado",
+      ].forEach((id) =>
+        document.getElementById(id).addEventListener("input", calcular)
+      );
+
+      // Form submission
+      document
+        .getElementById("cashForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          if (padCash.isEmpty() || padSup.isEmpty()) {
+            alert("Por favor, asegúrate de que ambas firmas estén completas.");
+            return;
+          }
+          const payload = {
+            fecha: document.getElementById("fecha").value,
+            cajero: this.cajero.value,
+            turno: this.turno.value,
+            cajaInicial: this.cajaInicial.value,
+            ventasEfectivo: this.ventasEfectivo.value,
+            ventasTarjeta: this.ventasTarjeta.value,
+            ventasMovil: this.ventasMovil.value,
+            movimientos: this.movimientos.value,
+            gastosMenores: this.gastosMenores.value,
+            cajaContado: this.cajaContado.value,
+            totalVentas: document.getElementById("totalVentas").value,
+            cajaEsperada: document.getElementById("cajaEsperada").value,
+            diferencia: document.getElementById("diferencia").value,
+            observaciones: this.observaciones.value,
+            firmaCajero: padCash.toDataURL(),
+            firmaSupervisor: padSup.toDataURL(),
+          };
+          console.log("Arqueo completo enviado:", payload);
+          alert("Arqueo completo enviado con éxito.");
+          this.reset();
+          padCash.clear();
+          padSup.clear();
+        });
+    </script>
+  </body>
+</html>

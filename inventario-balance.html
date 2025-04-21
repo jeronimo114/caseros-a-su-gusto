@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Caseros a Su Gusto – Balance de Inventario</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- FontAwesome Icons -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+      .signature-pad {
+        border: 2px dashed #ced4da;
+        border-radius: 0.25rem;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">Caseros a Su Gusto</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#mainNav"
+          aria-controls="mainNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="inicio.html">Inicio</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="index.html">Pedidos</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="arqueo-efectivo.html"
+                >Arqueo Efectivo</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="inventario-balance.html"
+                >Balance Inventario</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="container py-5">
+      <!-- Header -->
+      <div class="text-center mb-5">
+        <h1 class="display-4">
+          <i class="fas fa-boxes"></i> Balance de Inventario
+        </h1>
+        <p class="lead text-muted">Caseros a Su Gusto – Control Diario</p>
+      </div>
+
+      <!-- Inventory Balance Form -->
+      <form id="invForm" class="bg-white p-4 rounded shadow-sm">
+        <div class="mb-3">
+          <label class="form-label"
+            ><i class="fas fa-calendar-day"></i> Fecha</label
+          >
+          <input
+            type="text"
+            class="form-control"
+            id="invFecha"
+            disabled
+            value="<script>document.write(new Date().toLocaleDateString('es-CO'))</script>"
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label"
+            ><i class="fas fa-carrot"></i> Inventario Inicial Zanahorias</label
+          >
+          <input
+            type="number"
+            step="0.01"
+            class="form-control"
+            id="invZanahoria"
+            placeholder="Kg o unidades"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label"
+            ><i class="fas fa-leaf"></i> Inventario Inicial Papas</label
+          >
+          <input
+            type="number"
+            step="0.01"
+            class="form-control"
+            id="invPapa"
+            placeholder="Kg o unidades"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label"
+            ><i class="fas fa-utensils"></i> Inventario Inicial Arroz</label
+          >
+          <input
+            type="number"
+            step="0.01"
+            class="form-control"
+            id="invArroz"
+            placeholder="Kg o unidades"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label"
+            ><i class="fas fa-seedling"></i> Inventario Inicial Fríjol</label
+          >
+          <input
+            type="number"
+            step="0.01"
+            class="form-control"
+            id="invFrijol"
+            placeholder="Kg o unidades"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label"
+            ><i class="fas fa-drumstick-bite"></i> Inventario Inicial
+            Carne</label
+          >
+          <input
+            type="number"
+            step="0.01"
+            class="form-control"
+            id="invCarne"
+            placeholder="Kg"
+            required
+          />
+        </div>
+        <hr />
+        <div class="mb-3">
+          <label class="form-label"
+            ><i class="fas fa-arrow-down"></i> Entradas</label
+          >
+          <input
+            type="number"
+            step="0.01"
+            class="form-control"
+            id="entradas"
+            placeholder="Kg o unidades"
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label"
+            ><i class="fas fa-arrow-up"></i> Salidas</label
+          >
+          <input
+            type="number"
+            step="0.01"
+            class="form-control"
+            id="salidas"
+            placeholder="Kg o unidades"
+          />
+        </div>
+        <hr />
+        <div class="mb-3">
+          <label class="form-label"
+            ><i class="fas fa-box-open"></i> Inventario Final</label
+          >
+          <input
+            type="number"
+            step="0.01"
+            class="form-control"
+            id="invFinal"
+            placeholder="Kg o unidades"
+            required
+          />
+        </div>
+
+        <!-- Firma Digital -->
+        <div class="mb-3">
+          <label class="form-label"
+            ><i class="fas fa-signature"></i> Firma Digital (Cajero)</label
+          >
+          <canvas
+            id="signatureInv"
+            class="w-100 signature-pad"
+            width="400"
+            height="150"
+          ></canvas>
+          <button type="button" id="clearInv" class="btn btn-secondary mt-2">
+            <i class="fas fa-eraser"></i> Limpiar firma
+          </button>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="fas fa-paper-plane"></i> Enviar Balance
+        </button>
+      </form>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script>
+      const canvasInv = document.getElementById("signatureInv");
+      const padInv = new SignaturePad(canvasInv);
+      document
+        .getElementById("clearInv")
+        .addEventListener("click", () => padInv.clear());
+
+      document
+        .getElementById("invForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          if (padInv.isEmpty()) {
+            alert("Por favor, firme antes de enviar.");
+            return;
+          }
+          const payload = {
+            fecha: document.getElementById("invFecha").value,
+            invZanahoria: this.invZanahoria.value,
+            invPapa: this.invPapa.value,
+            invArroz: this.invArroz.value,
+            invFrijol: this.invFrijol.value,
+            invCarne: this.invCarne.value,
+            entradas: this.entradas.value,
+            salidas: this.salidas.value,
+            invFinal: this.invFinal.value,
+            firma: padInv.toDataURL(),
+          };
+          console.log("Balance enviado:", payload);
+          alert("Balance enviado con éxito.");
+          this.reset();
+          padInv.clear();
+        });
+    </script>
+  </body>
+</html>
