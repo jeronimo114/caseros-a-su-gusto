@@ -23,6 +23,36 @@
         border: 2px dashed #ced4da;
         border-radius: 0.25rem;
       }
+      .ingredient-card img {
+        object-fit: cover;
+        height: 100px;
+      }
+      .ingredient-card {
+        transition: transform 0.15s ease-in-out;
+      }
+      .ingredient-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+      }
+      .category-header {
+        background: #0d6efd;
+        color: #fff;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        margin-top: 1.5rem;
+      }
+      .category-card img {
+        object-fit: cover;
+        height: 140px;
+      }
+      .category-card {
+        cursor: pointer;
+        transition: transform 0.15s ease-in-out;
+      }
+      .category-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+      }
     </style>
   </head>
   <body>
@@ -90,64 +120,45 @@
 
         <hr />
 
-        <!-- Insumos -->
-        <div class="mb-3">
-          <label class="form-label"
-            ><i class="fas fa-carrot"></i> Zanahorias</label
-          >
-          <input
-            type="number"
-            step="0.01"
-            class="form-control"
-            id="zanahoria"
-            placeholder="Kg o unidades"
-          />
+        <!-- Buscador -->
+        <div class="row mb-4">
+          <div class="col-md-6 mx-auto">
+            <div class="input-group">
+              <span class="input-group-text"
+                ><i class="fas fa-search"></i
+              ></span>
+              <input
+                id="searchInput"
+                type="text"
+                class="form-control"
+                placeholder="Buscar ingrediente…"
+              />
+            </div>
+          </div>
         </div>
-        <div class="mb-3">
-          <label class="form-label"><i class="fas fa-leaf"></i> Papas</label>
-          <input
-            type="number"
-            step="0.01"
-            class="form-control"
-            id="papa"
-            placeholder="Kg o unidades"
-          />
+
+        <!-- Lista de ingredientes -->
+        <!-- Vista categorías -->
+        <div id="categories-container" class="row g-3"></div>
+
+        <!-- Vista ingredientes por categoría -->
+        <div id="items-view" style="display: none">
+          <button id="backBtn" type="button" class="btn btn-link mb-2">
+            <i class="fas fa-arrow-left me-1"></i> Categorías
+          </button>
+          <h3 id="items-title" class="category-header"></h3>
+          <div id="items-container" class="row g-3 mt-2"></div>
         </div>
-        <div class="mb-3">
-          <label class="form-label"
-            ><i class="fas fa-utensils"></i> Arroz</label
+
+        <!-- Botón enviar -->
+        <div class="text-center mt-4">
+          <button
+            id="submitBtn"
+            type="button"
+            class="btn btn-primary btn-lg w-50"
           >
-          <input
-            type="number"
-            step="0.01"
-            class="form-control"
-            id="arroz"
-            placeholder="Kg o unidades"
-          />
-        </div>
-        <div class="mb-3">
-          <label class="form-label"
-            ><i class="fas fa-seedling"></i> Fríjol</label
-          >
-          <input
-            type="number"
-            step="0.01"
-            class="form-control"
-            id="frijol"
-            placeholder="Kg o unidades"
-          />
-        </div>
-        <div class="mb-3">
-          <label class="form-label"
-            ><i class="fas fa-drumstick-bite"></i> Carne</label
-          >
-          <input
-            type="number"
-            step="0.01"
-            class="form-control"
-            id="carne"
-            placeholder="Kg"
-          />
+            <i class="fas fa-paper-plane me-2"></i>Enviar Pedido
+          </button>
         </div>
 
         <!-- Firma Digital -->
@@ -165,11 +176,6 @@
             <i class="fas fa-eraser"></i> Limpiar firma
           </button>
         </div>
-
-        <!-- Submit -->
-        <button type="submit" class="btn btn-primary w-100">
-          <i class="fas fa-paper-plane"></i> Enviar Pedido
-        </button>
       </form>
     </div>
 
@@ -179,6 +185,224 @@
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <!-- Custom Script -->
     <script>
+      // ----------- Ingredientes, categorías y UI ----------- //
+      // Configuración de Google Sheets
+      const SHEET_ID = "11XLlDTgJwTUDzW7dmTOH9PUF1Xt2QNQkRq0CqqZ5c6A";
+      const API_KEY = "AIzaSyC5gWJhv6OJKjclZPbLa96uAxO4B5v_VF8";
+      // const RANGE = "Materiales!A2:J"; // A‑J: incluye presentación, costo y grupos
+      const RANGE = "Materiales!A2:K"; // A‑K: añade columna de Grupo Categorización
+
+      // Variables globales
+      let ingredients = [];
+      let ingredientMeta = {};
+
+      // --- Mapeo: subgrupo/grupo ➜ Grupo Categorización ― usado también para llenar la columna “Grupo Categorización” en el Sheet si hicieras un Apps Script ---
+      const CATEGORY_MAP = {
+        ACEITE_ING: "Aceites y Grasas",
+        CONDIMENTO_ING: "Condimentos",
+        FRUTA_ING: "Frutas",
+        LEGUMBRE_ING: "Verduras y Hortalizas",
+        GRANO_ING: "Granos y Leguminosas",
+        CARNE_ING: "Proteínas",
+        "CARNES FRIAS_ING": "Proteínas",
+        SALSA_ING: "Salsas",
+        LACTEO_ING: "Lácteos y Huevos",
+        ENDULZANTE_ING: "Dulces y Endulzantes",
+        BEBIDA_ING: "Bebidas",
+        BOLSA_EMP: "Empaques y Desechables",
+        EMPAQUE: "Empaques y Desechables",
+      };
+
+      async function loadIngredients() {
+        try {
+          const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(
+            RANGE
+          )}?key=${API_KEY}`;
+
+          console.log("[LOAD] Using range:", RANGE);
+          console.log("[LOAD] Encoded range:", encodeURIComponent(RANGE));
+          console.log("[LOAD] Fetching Google Sheets URL:", url);
+
+          const res = await fetch(url);
+          console.log("[LOAD] HTTP status:", res.status, res.statusText);
+
+          const data = await res.json();
+          console.log("[LOAD] Raw JSON response:", data);
+
+          const rows = data.values || [];
+          console.log(`[LOAD] Filas recibidas: ${rows.length}`);
+
+          // Filtrar filas con descripción (columna B) y costo válido (columna H)
+          const cleanRows = rows.filter(
+            (r) => r[1] && !isNaN(parseFloat(r[7]))
+          );
+
+          // Columna indices: 0=Código, 1=Descripción, 3=UoM, 4=Unidad de compra, 7=Costo, 8=Grupo, 9=Subgrupo, 10=Grupo Categorización
+          ingredients = cleanRows.map((r) => r[1]);
+          ingredientMeta = {};
+          cleanRows.forEach((r) => {
+            ingredientMeta[r[1]] = {
+              uom: r[3] || "",
+              purchase: r[4] || "",
+              cost: parseFloat(r[7]),
+              group: r[8] || "",
+              subgroup: r[9] || "",
+              category: r[10] || "", // nueva columna K
+            };
+          });
+
+          renderCategories(); // cuando ya existe data → pinta UI
+        } catch (err) {
+          console.error("[LOAD] Error cargando hoja:", err);
+          alert(
+            "No se pudo cargar la lista de ingredientes desde Google Sheets. Revisa la consola para detalles."
+          );
+        }
+      }
+
+      // Llamar a la carga al arrancar
+      loadIngredients();
+
+      function getCategory(name) {
+        const meta = ingredientMeta[name] || {};
+        // prioridad: categoría explícita (columna K) > mapeo por subgrupo/grupo > “Otros”
+        if (meta.category && meta.category.trim()) return meta.category.trim();
+        const key = (meta.subgroup || meta.group || "").trim();
+        return CATEGORY_MAP[key] || (key ? key : "Otros");
+      }
+
+      // clasificador por categoría (función getCategory ya está unas líneas más abajo, se conserva)
+
+      // refs al DOM
+      const categoriesContainer = document.getElementById(
+        "categories-container"
+      );
+      const itemsView = document.getElementById("items-view");
+      const backBtn = document.getElementById("backBtn");
+      const itemsTitle = document.getElementById("items-title");
+      const itemsContainer = document.getElementById("items-container");
+
+      // estado de cantidades
+      const qtyByName = {};
+
+      // ----------- Render categorías ----------- //
+      function renderCategories() {
+        // reconstruir grupos con la data más reciente
+        let groups = {};
+        ingredients.forEach((n) => {
+          const c = getCategory(n);
+          (groups[c] = groups[c] || []).push(n);
+        });
+        categoriesContainer.innerHTML = ""; // limpiar grid
+        Object.keys(groups)
+          .sort()
+          .forEach((cat) => {
+            const col = document.createElement("div");
+            col.className = "col-6 col-md-4 col-lg-3";
+            col.innerHTML = `<div class="card category-card h-100">
+              <img src="https://dummyimage.com/300x200/adb5bd/000&text=${encodeURIComponent(
+                cat
+              )}" class="card-img-top" alt="${cat}">
+              <div class="card-body p-2 d-flex flex-column justify-content-center">
+                <h5 class="card-title text-center">${cat}</h5>
+              </div>
+            </div>`;
+            col.addEventListener("click", () => openCategory(cat));
+            categoriesContainer.appendChild(col);
+          });
+      }
+
+      // ----------- Abrir categoría ----------- //
+      function openCategory(cat) {
+        itemsTitle.textContent = cat;
+        itemsContainer.innerHTML = "";
+        groups = {};
+        ingredients.forEach((n) => {
+          const c = getCategory(n);
+          (groups[c] = groups[c] || []).push(n);
+        });
+        groups[cat].sort().forEach((name) => {
+          const col = document.createElement("div");
+          col.className = "col-6 col-md-4 col-lg-3";
+          const saved = qtyByName[name] ?? "";
+          const meta = ingredientMeta[name] || {
+            uom: "",
+            purchase: "",
+            cost: 0,
+          };
+          col.innerHTML = `
+            <div class="card ingredient-card h-100">
+              <img src="https://dummyimage.com/300x200/ced4da/000&text=${encodeURIComponent(
+                name
+              )}" class="card-img-top" alt="${name}">
+              <div class="card-body p-2 d-flex flex-column">
+                <h6 class="card-title text-center mb-1" style="font-size:.85rem">${name}</h6>
+                <small class="text-muted d-block text-center">${
+                  meta.purchase
+                }</small>
+                <small class="text-muted d-block text-center">${getCategory(
+                  name
+                )}</small>
+                <small class="text-muted d-block text-center">COP ${meta.cost.toFixed(
+                  2
+                )}/${meta.uom}</small>
+                <div class="mt-auto">
+                  <input class="form-control form-control-sm text-center qty-input" value="${saved}" type="number" min="0" placeholder="Cant. (${
+            meta.uom || ""
+          })">
+                </div>
+              </div>
+            </div>`;
+          // guardar cambios
+          col.querySelector(".qty-input").addEventListener("input", (e) => {
+            const v = e.target.value;
+            if (v && Number(v) > 0) {
+              qtyByName[name] = Number(v);
+            } else {
+              delete qtyByName[name];
+            }
+          });
+          itemsContainer.appendChild(col);
+        });
+        categoriesContainer.style.display = "none";
+        itemsView.style.display = "";
+        document.getElementById("searchInput").value = "";
+      }
+
+      // ----------- Botón volver ----------- //
+      backBtn.addEventListener("click", () => {
+        itemsView.style.display = "none";
+        categoriesContainer.style.display = "";
+        itemsContainer.innerHTML = "";
+      });
+
+      // ----------- Buscador ----------- //
+      const searchInput = document.getElementById("searchInput");
+      searchInput.addEventListener("input", () => {
+        const term = searchInput.value.toLowerCase();
+        // si estamos en vista categorías
+        if (categoriesContainer.style.display !== "none") {
+          document.querySelectorAll(".category-card").forEach((card) => {
+            const txt = card
+              .querySelector(".card-title")
+              .textContent.toLowerCase();
+            card.parentElement.style.display = txt.includes(term) ? "" : "none";
+          });
+        } else {
+          // vista items
+          itemsContainer
+            .querySelectorAll(".ingredient-card")
+            .forEach((card) => {
+              const txt = card
+                .querySelector(".card-title")
+                .textContent.toLowerCase();
+              card.parentElement.style.display = txt.includes(term)
+                ? ""
+                : "none";
+            });
+        }
+      });
+
       // Inicializar Signature Pad
       const canvas = document.getElementById("signaturePad");
       const signaturePad = new SignaturePad(canvas);
@@ -186,31 +410,45 @@
         .getElementById("clearBtn")
         .addEventListener("click", () => signaturePad.clear());
 
-      // Validación de firma y envío de formulario
-      document
-        .getElementById("orderForm")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
-          if (signaturePad.isEmpty()) {
-            alert("Por favor, firma antes de enviar.");
-            return;
+      // Envío personalizado
+      document.getElementById("submitBtn").addEventListener("click", () => {
+        if (signaturePad.isEmpty()) {
+          alert("Por favor, firma antes de enviar.");
+          return;
+        }
+        const turno = document.getElementById("turno").value;
+        if (!turno) {
+          alert("Por favor, selecciona un turno.");
+          return;
+        }
+        // sincronizar inputs visibles con qtyByName
+        itemsContainer.querySelectorAll(".ingredient-card").forEach((card) => {
+          const name = card.querySelector(".card-title").textContent;
+          const val = card.querySelector(".qty-input").value.trim();
+          if (val && Number(val) > 0) {
+            qtyByName[name] = Number(val);
+          } else {
+            delete qtyByName[name];
           }
-          // Construir payload
-          const payload = {
-            turno: this.turno.value,
-            zanahoria: this.zanahoria.value,
-            papa: this.papa.value,
-            arroz: this.arroz.value,
-            frijol: this.frijol.value,
-            carne: this.carne.value,
-            firma: signaturePad.toDataURL(),
-          };
-          // TODO: Enviar payload a tu API
-          console.log("Pedido enviado:", payload);
-          alert("Pedido enviado con éxito.");
-          this.reset();
-          signaturePad.clear();
         });
+        const ingredientesSeleccionados = Object.entries(qtyByName).map(
+          ([nombre, cantidad]) => ({ nombre, cantidad })
+        );
+        if (ingredientesSeleccionados.length === 0) {
+          alert("Por favor, ingresa la cantidad de al menos un ingrediente.");
+          return;
+        }
+        const payload = {
+          turno,
+          ingredientes: ingredientesSeleccionados,
+          firma: signaturePad.toDataURL(),
+        };
+        // TODO: Enviar payload a tu API
+        console.log("Pedido enviado:", payload);
+        alert("Pedido enviado con éxito.");
+        document.getElementById("orderForm").reset();
+        signaturePad.clear();
+      });
     </script>
   </body>
 </html>
