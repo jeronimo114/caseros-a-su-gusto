@@ -23,10 +23,6 @@
         border: 2px dashed #ced4da;
         border-radius: 0.25rem;
       }
-      .ingredient-card img {
-        object-fit: cover;
-        height: 100px;
-      }
       .ingredient-card {
         transition: transform 0.15s ease-in-out;
       }
@@ -41,10 +37,6 @@
         border-radius: 0.5rem;
         margin-top: 1.5rem;
       }
-      .category-card img {
-        object-fit: cover;
-        height: 140px;
-      }
       .category-card {
         cursor: pointer;
         transition: transform 0.15s ease-in-out;
@@ -52,6 +44,15 @@
       .category-card:hover {
         transform: translateY(-3px);
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+      }
+      .icon-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 110px;
+      }
+      .icon-wrapper i {
+        font-size: 2.5rem;
       }
     </style>
   </head>
@@ -213,6 +214,54 @@
         EMPAQUE: "Empaques y Desechables",
       };
 
+      const ICON_MAP = {
+        "Aceites y Grasas": "fa-oil-can",
+        Condimentos: "fa-pepper-hot",
+        Frutas: "fa-apple-whole",
+        "Verduras y Hortalizas": "fa-carrot",
+        "Granos y Leguminosas": "fa-wheat-awn",
+        Proteínas: "fa-drumstick-bite",
+        Salsas: "fa-jar",
+        "Lácteos y Huevos": "fa-cheese",
+        "Dulces y Endulzantes": "fa-candy-cane",
+        Bebidas: "fa-mug-saucer",
+        "Empaques y Desechables": "fa-box-open",
+        "Productos Elaborados": "fa-utensils",
+        "Productos Semi-terminados": "fa-flask",
+        Mercancía: "fa-truck-ramp-box",
+        Otros: "fa-box",
+      };
+
+      // --- Helpers para nombre y favicon ---
+      function toTitleCase(str) {
+        return str
+          .toLowerCase()
+          .replace(/_/g, " ") // guiones bajos → espacio
+          .replace(/\b\w/g, (c) => c.toUpperCase());
+      }
+      // Limpia _ing y formatea
+      function cleanCategory(raw) {
+        if (!raw) return "";
+        return toTitleCase(raw.replace(/_ing$/i, ""));
+      }
+      // Devuelve ícono coherente
+      function getIcon(cat) {
+        if (ICON_MAP[cat]) return ICON_MAP[cat];
+        const l = cat.toLowerCase();
+        if (l.includes("aceite")) return "fa-oil-can";
+        if (l.includes("condimento")) return "fa-pepper-hot";
+        if (l.includes("frut")) return "fa-apple-whole";
+        if (l.includes("verdura") || l.includes("hortal")) return "fa-carrot";
+        if (l.includes("grano") || l.includes("legumin")) return "fa-wheat-awn";
+        if (l.includes("prote")) return "fa-drumstick-bite";
+        if (l.includes("salsa")) return "fa-jar";
+        if (l.includes("lácteo") || l.includes("huevo")) return "fa-cheese";
+        if (l.includes("dulce") || l.includes("endulz")) return "fa-candy-cane";
+        if (l.includes("bebida")) return "fa-mug-saucer";
+        if (l.includes("empaque")) return "fa-box-open";
+        return "fa-box";
+      }
+
       async function loadIngredients() {
         try {
           const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(
@@ -265,10 +314,18 @@
 
       function getCategory(name) {
         const meta = ingredientMeta[name] || {};
-        // prioridad: categoría explícita (columna K) > mapeo por subgrupo/grupo > “Otros”
-        if (meta.category && meta.category.trim()) return meta.category.trim();
+        // prioridad: columna K ya limpia
+        if (meta.category && meta.category.trim()) {
+          return cleanCategory(meta.category);
+        }
+        // si no, intenta subgrupo/grupo
         const key = (meta.subgroup || meta.group || "").trim();
-        return CATEGORY_MAP[key] || (key ? key : "Otros");
+        if (key) {
+          // si existe mapeo directo
+          if (CATEGORY_MAP[key]) return CATEGORY_MAP[key];
+          return cleanCategory(key);
+        }
+        return "Otros";
       }
 
       // clasificador por categoría (función getCategory ya está unas líneas más abajo, se conserva)
@@ -299,14 +356,12 @@
           .forEach((cat) => {
             const col = document.createElement("div");
             col.className = "col-6 col-md-4 col-lg-3";
-            col.innerHTML = `<div class="card category-card h-100">
-              <img src="https://dummyimage.com/300x200/adb5bd/000&text=${encodeURIComponent(
-                cat
-              )}" class="card-img-top" alt="${cat}">
-              <div class="card-body p-2 d-flex flex-column justify-content-center">
-                <h5 class="card-title text-center">${cat}</h5>
-              </div>
-            </div>`;
+            const iconClass = getIcon(cat);
+            col.innerHTML = `
+              <div class="card category-card h-100 p-3 text-center d-flex flex-column align-items-center justify-content-center">
+                <div class="icon-wrapper"><i class="fa-solid ${iconClass} text-primary"></i></div>
+                <h5 class="card-title mt-2">${cat}</h5>
+              </div>`;
             col.addEventListener("click", () => openCategory(cat));
             categoriesContainer.appendChild(col);
           });
@@ -332,9 +387,9 @@
           };
           col.innerHTML = `
             <div class="card ingredient-card h-100">
-              <img src="https://dummyimage.com/300x200/ced4da/000&text=${encodeURIComponent(
-                name
-              )}" class="card-img-top" alt="${name}">
+              <div class="icon-wrapper"><i class="fa-solid ${getIcon(
+                cat
+              )} text-secondary"></i></div>
               <div class="card-body p-2 d-flex flex-column">
                 <h6 class="card-title text-center mb-1" style="font-size:.85rem">${name}</h6>
                 <small class="text-muted d-block text-center">${
