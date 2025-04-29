@@ -119,6 +119,18 @@
           </div>
         </div>
 
+        <!-- Sede -->
+        <div class="row mb-3">
+          <label for="sede" class="col-sm-2 col-form-label"
+            ><i class="fas fa-location-dot"></i> Sede</label
+          >
+          <div class="col-sm-10">
+            <select class="form-select" id="sede" required>
+              <option value="">Selecciona sede...</option>
+            </select>
+          </div>
+        </div>
+
         <hr />
 
         <!-- Buscador -->
@@ -188,12 +200,19 @@
     <script>
       // ----------- Ingredientes, categorías y UI ----------- //
       // Configuración de Google Sheets
-      const SHEET_ID = "11XLlDTgJwTUDzW7dmTOH9PUF1Xt2QNQkRq0CqqZ5c6A";
+      const SHEET_ID = "1SF0faWrR-AO-WhMC2aPoTwvytXAo1ndTcPPDuAd-7Rc";
       const API_KEY = "AIzaSyC5gWJhv6OJKjclZPbLa96uAxO4B5v_VF8";
-      // const RANGE = "Materiales!A2:J"; // A‑J: incluye presentación, costo y grupos
-      const RANGE = "Materiales!A2:K"; // A‑K: añade columna de Grupo Categorización
+      // Hoja actual: Punto_Lista_pedidos_a_planta  (empieza en fila 3)
+      const RANGE = "'Punto_Lista_pedidos_a_planta'!A3:K";
 
       // Variables globales
+      // Lista de sedes (puedes editar más tarde o cargarlas desde otro rango)
+      const SEDE_OPTIONS = [
+        "Gran plaza",
+        "Bosque plaza",
+        "Camino real",
+        "Poli JIC",
+      ];
       let ingredients = [];
       let ingredientMeta = {};
 
@@ -281,22 +300,34 @@
           const rows = data.values || [];
           console.log(`[LOAD] Filas recibidas: ${rows.length}`);
 
-          // Filtrar filas con descripción (columna B) y costo válido (columna H)
-          const cleanRows = rows.filter(
-            (r) => r[1] && !isNaN(parseFloat(r[7]))
-          );
-
-          // Columna indices: 0=Código, 1=Descripción, 3=UoM, 4=Unidad de compra, 7=Costo, 8=Grupo, 9=Subgrupo, 10=Grupo Categorización
-          ingredients = cleanRows.map((r) => r[1]);
+          // NUEVO PARSEO: filas con "C" en la col A son cabeceras de categoría.
+          // Los productos van desde la fila siguiente hasta la próxima "C".
+          let currentCat = "Otros";
+          ingredients = [];
           ingredientMeta = {};
-          cleanRows.forEach((r) => {
-            ingredientMeta[r[1]] = {
-              uom: r[3] || "",
-              purchase: r[4] || "",
-              cost: parseFloat(r[7]),
-              group: r[8] || "",
-              subgroup: r[9] || "",
-              category: r[10] || "", // nueva columna K
+
+          rows.forEach((r) => {
+            const marker = (r[0] || "").toString().trim();
+            // 1) Cambio de categoría
+            if (marker.toUpperCase() === "C") {
+              // Categoria viene normalmente en columna B
+              currentCat = cleanCategory(r[1] || r[2] || "Otros");
+              return; // pasa a la siguiente fila
+            }
+
+            // 2) Si la fila tiene producto (columna B no vacía)
+            const name = (r[1] || "").trim();
+            if (!name) return; // fila vacía u otra cabecera (Lunes, etc.)
+
+            // Guardar
+            ingredients.push(name);
+            ingredientMeta[name] = {
+              uom: r[4] || r[3] || "", // Unidad de medida (col E) o Empaque primario
+              purchase: r[8] || r[3] || "", // Unidad empaque rotulado o Empaque primario
+              cost: 0, // Nueva hoja no trae precio → 0
+              group: "", // no se usan
+              subgroup: "",
+              category: currentCat, // categoría derivada
             };
           });
 
@@ -311,6 +342,18 @@
 
       // Llamar a la carga al arrancar
       loadIngredients();
+
+      // Poblar selector de sedes
+      function populateSedeSelect() {
+        const sel = document.getElementById("sede");
+        SEDE_OPTIONS.forEach((s) => {
+          const opt = document.createElement("option");
+          opt.value = s;
+          opt.textContent = s;
+          sel.appendChild(opt);
+        });
+      }
+      populateSedeSelect();
 
       function getCategory(name) {
         const meta = ingredientMeta[name] || {};
@@ -398,9 +441,13 @@
                 <small class="text-muted d-block text-center">${getCategory(
                   name
                 )}</small>
-                <small class="text-muted d-block text-center">COP ${meta.cost.toFixed(
-                  2
-                )}/${meta.uom}</small>
+                ${
+                  meta.cost && meta.cost > 0
+                    ? `<small class="text-muted d-block text-center">COP ${meta.cost.toFixed(
+                        2
+                      )}/${meta.uom}</small>`
+                    : ""
+                }
                 <div class="mt-auto">
                   <input class="form-control form-control-sm text-center qty-input" value="${saved}" type="number" min="0" placeholder="Cant. (${
             meta.uom || ""
@@ -476,6 +523,11 @@
           alert("Por favor, selecciona un turno.");
           return;
         }
+        const sede = document.getElementById("sede").value;
+        if (!sede) {
+          alert("Por favor, selecciona una sede.");
+          return;
+        }
         // sincronizar inputs visibles con qtyByName
         itemsContainer.querySelectorAll(".ingredient-card").forEach((card) => {
           const name = card.querySelector(".card-title").textContent;
@@ -494,6 +546,7 @@
           return;
         }
         const payload = {
+          sede,
           turno,
           ingredientes: ingredientesSeleccionados,
           firma: signaturePad.toDataURL(),
@@ -502,6 +555,7 @@
         console.log("Pedido enviado:", payload);
         alert("Pedido enviado con éxito.");
         document.getElementById("orderForm").reset();
+        document.getElementById("sede").value = "";
         signaturePad.clear();
       });
     </script>
